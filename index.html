@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overmapper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="" class="brand-logo">
+        <div>
+          <h1>Overmapper</h1>
+          <p class="subtitle">GPX-Track + Hintergrundbild &rarr; teilbares Poster</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="controls">
+
+        <div class="panel">
+          <h2 class="panel-title">Quelldaten</h2>
+          <div class="field">
+            <label for="gpxInput">GPX-Datei</label>
+            <input type="file" id="gpxInput" accept=".gpx,application/gpx+xml,text/xml,application/xml">
+            <p class="hint" id="gpxHint">Noch keine Datei geladen</p>
+          </div>
+          <div class="field">
+            <label for="imgInput">Hintergrundbild</label>
+            <input type="file" id="imgInput" accept="image/*">
+            <p class="hint" id="imgHint">Noch kein Bild geladen</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">Format</h2>
+          <div class="segmented" id="presetSegmented" role="group">
+            <button type="button" class="segmented-btn" data-value="1080x1350">4:5</button>
+            <button type="button" class="segmented-btn" data-value="1080x1920">9:16</button>
+            <button type="button" class="segmented-btn" data-value="1080x1080">1:1</button>
+            <button type="button" class="segmented-btn" data-value="1200x630">16:9</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">Bild</h2>
+          <div class="field">
+            <div class="row-label">
+              <label for="zoomRange">Zoom</label>
+              <button type="button" id="resetImageBtn" class="link-btn">Zurücksetzen</button>
+            </div>
+            <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1">
+            <p class="hint">In der Vorschau ziehen, um den Ausschnitt zu verschieben.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title-row">
+            <h2 class="panel-title">Track</h2>
+            <label class="toggle toggle-compact">
+              <input type="checkbox" id="trackEnabled" checked>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+          <div class="field" id="trackControls">
+            <label>Farbe</label>
+            <input type="color" id="accentColor" value="#ffffff" class="swatch">
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showBordersCheckbox">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-label">Ländergrenzen anzeigen</span>
+          </label>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">Text</h2>
+
+          <div class="field">
+            <label>Farbe</label>
+            <input type="color" id="textColor" value="#ffffff" class="swatch">
+          </div>
+
+          <div class="subsection">
+            <div class="row-label">
+              <label for="titleInput">Titel</label>
+              <label class="toggle toggle-compact">
+                <input type="checkbox" id="titleEnabled" checked>
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+            </div>
+            <input type="text" id="titleInput" placeholder="z.&nbsp;B. Alpencross 2026" maxlength="60">
+          </div>
+
+          <div class="subsection">
+            <div class="row-label">
+              <label>Entfernung</label>
+              <label class="toggle toggle-compact">
+                <input type="checkbox" id="distanceEnabled" checked>
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title-row">
+            <h2 class="panel-title">Flaggen</h2>
+            <label class="toggle toggle-compact">
+              <input type="checkbox" id="flagsEnabled" checked>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="preview">
+        <div class="canvas-wrap">
+          <canvas id="canvas" width="1080" height="1350"></canvas>
+          <p class="placeholder" id="placeholder">Lade eine GPX-Datei und ein Hintergrundbild, um die Vorschau zu sehen.</p>
+        </div>
+        <button id="downloadBtn" disabled>Poster herunterladen (PNG)</button>
+        <p class="error" id="errorMsg"></p>
+      </section>
+    </main>
+  </div>
+
+  <script src="data/countries.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
