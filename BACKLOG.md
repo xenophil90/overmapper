@@ -11,6 +11,7 @@ Ideen und offene Punkte für später — keine davon ist aktuell in Arbeit.
 
 ## Mögliche Verbesserungen
 
+- [ ] Entfernung ohne Nachkommastelle anzeigen (z. B. "183 km" statt "183.4 km").
 - [ ] GPX-Import erweitern: aktuell werden nur `trkpt` (Track-Punkte)
   gelesen — `rte`/`rtept` (Routen) und `wpt` (Wegpunkte) werden ignoriert.
 - [ ] Download-Button-Breite an sehr schmale Formate (9:16) angleichen —
