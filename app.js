@@ -653,10 +653,17 @@ bindEnableToggle(flagsEnabled, []);
 bindEnableToggle(titleEnabled, [titleInput]);
 bindEnableToggle(distanceEnabled, []);
 
+const MAX_GPX_FILE_SIZE = 50 * 1024 * 1024;
+
 gpxInput.addEventListener('change', async () => {
   const file = gpxInput.files[0];
   if (!file) return;
   setError('');
+  if (file.size > MAX_GPX_FILE_SIZE) {
+    setError('Die GPX-Datei ist zu groß (max. 50 MB).');
+    gpxHint.textContent = 'Noch keine Datei geladen';
+    return;
+  }
   try {
     const text = await file.text();
     const segments = parseGPX(text);
@@ -674,6 +681,8 @@ gpxInput.addEventListener('change', async () => {
   }
 });
 
+let backgroundImageUrl = null;
+
 imgInput.addEventListener('change', async () => {
   const file = imgInput.files[0];
   if (!file) return;
@@ -681,6 +690,8 @@ imgInput.addEventListener('change', async () => {
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImage(url);
+    if (backgroundImageUrl) URL.revokeObjectURL(backgroundImageUrl);
+    backgroundImageUrl = url;
     state.image = img;
     state.imageTransform = { zoom: 1, panX: 0, panY: 0 };
     zoomRange.value = '1';
@@ -688,6 +699,7 @@ imgInput.addEventListener('change', async () => {
     await fontsReady;
     render();
   } catch (err) {
+    URL.revokeObjectURL(url);
     setError('Das Bild konnte nicht geladen werden.');
   }
 });
