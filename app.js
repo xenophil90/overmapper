@@ -2,15 +2,21 @@
 
 /* ---------- GPX parsing ---------- */
 
+function gpxError(code) {
+  const err = new Error(code);
+  err.i18nCode = code;
+  return err;
+}
+
 function parseGPX(xmlText) {
   const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
   if (doc.querySelector('parsererror')) {
-    throw new Error('Die Datei konnte nicht als GPX gelesen werden.');
+    throw gpxError('errorNotGpx');
   }
 
   const trkSegs = doc.querySelectorAll('trkseg');
   if (trkSegs.length === 0) {
-    throw new Error('Keine Track-Daten (trkseg) in der GPX-Datei gefunden.');
+    throw gpxError('errorNoTrkseg');
   }
 
   const segments = [];
@@ -35,7 +41,7 @@ function parseGPX(xmlText) {
   });
 
   if (segments.length === 0) {
-    throw new Error('Der Track enthält zu wenige Punkte.');
+    throw gpxError('errorTooFewPoints');
   }
   return segments;
 }
@@ -526,6 +532,10 @@ const state = {
   image: null,
   flagImages: new Map(),
   imageTransform: { zoom: 1, panX: 0, panY: 0 },
+  lang: window.DEFAULT_LANG,
+  gpxHintState: { type: 'none' },
+  imgHintState: { type: 'none' },
+  errorCode: null,
 };
 
 const layout = {
@@ -556,14 +566,67 @@ const errorMsg = document.getElementById('errorMsg');
 const gpxHint = document.getElementById('gpxHint');
 const imgHint = document.getElementById('imgHint');
 const placeholder = document.getElementById('placeholder');
+const langSelect = document.getElementById('langSelect');
 
 function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
 }
 
-function setError(msg) {
-  errorMsg.textContent = msg || '';
+function t(key) {
+  const dict = window.TRANSLATIONS[state.lang] || window.TRANSLATIONS[window.DEFAULT_LANG];
+  return dict[key];
 }
+
+function setError(code) {
+  state.errorCode = code || null;
+  errorMsg.textContent = code ? t(code) : '';
+}
+
+function renderGpxHint() {
+  const s = state.gpxHintState;
+  gpxHint.textContent = s.type === 'loaded'
+    ? `${s.fileName} · ${s.pointCount} ${t('pointsUnit')}`
+    : t('hintNoGpx');
+}
+
+function renderImgHint() {
+  const s = state.imgHintState;
+  imgHint.textContent = s.type === 'loaded' ? s.fileName : t('hintNoImage');
+}
+
+function detectInitialLang() {
+  try {
+    const saved = localStorage.getItem('overmapper-lang');
+    if (saved && window.SUPPORTED_LANGS.includes(saved)) return saved;
+  } catch (err) { /* localStorage unavailable */ }
+  const browserLang = (navigator.language || '').slice(0, 2).toLowerCase();
+  if (window.SUPPORTED_LANGS.includes(browserLang)) return browserLang;
+  return window.DEFAULT_LANG;
+}
+
+function applyLanguage(lang) {
+  state.lang = window.SUPPORTED_LANGS.includes(lang) ? lang : window.DEFAULT_LANG;
+  document.documentElement.lang = state.lang;
+
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  langSelect.value = state.lang;
+
+  renderGpxHint();
+  renderImgHint();
+  errorMsg.textContent = state.errorCode ? t(state.errorCode) : '';
+
+  try {
+    localStorage.setItem('overmapper-lang', state.lang);
+  } catch (err) { /* localStorage unavailable */ }
+}
+
+langSelect.addEventListener('change', () => applyLanguage(langSelect.value));
+applyLanguage(detectInitialLang());
 
 function render() {
   const [w, h] = currentPreset.split('x').map(Number);
@@ -658,10 +721,11 @@ const MAX_GPX_FILE_SIZE = 50 * 1024 * 1024;
 gpxInput.addEventListener('change', async () => {
   const file = gpxInput.files[0];
   if (!file) return;
-  setError('');
+  setError(null);
   if (file.size > MAX_GPX_FILE_SIZE) {
-    setError('Die GPX-Datei ist zu groß (max. 50 MB).');
-    gpxHint.textContent = 'Noch keine Datei geladen';
+    setError('errorTooLarge');
+    state.gpxHintState = { type: 'none' };
+    renderGpxHint();
     return;
   }
   try {
@@ -671,13 +735,15 @@ gpxInput.addEventListener('change', async () => {
     state.metrics = computeMetrics(segments);
     state.countries = detectCountries(segments);
     const pointCount = segments.reduce((sum, seg) => sum + seg.length, 0);
-    gpxHint.textContent = `${file.name} · ${pointCount} Punkte`;
+    state.gpxHintState = { type: 'loaded', fileName: file.name, pointCount };
+    renderGpxHint();
     state.flagImages = await preloadFlags(state.countries);
     await fontsReady;
     render();
   } catch (err) {
-    setError(err.message || 'Fehler beim Lesen der GPX-Datei.');
-    gpxHint.textContent = 'Noch keine Datei geladen';
+    setError(err.i18nCode || 'errorReadGeneric');
+    state.gpxHintState = { type: 'none' };
+    renderGpxHint();
   }
 });
 
@@ -686,7 +752,7 @@ let backgroundImageUrl = null;
 imgInput.addEventListener('change', async () => {
   const file = imgInput.files[0];
   if (!file) return;
-  setError('');
+  setError(null);
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImage(url);
@@ -695,12 +761,13 @@ imgInput.addEventListener('change', async () => {
     state.image = img;
     state.imageTransform = { zoom: 1, panX: 0, panY: 0 };
     zoomRange.value = '1';
-    imgHint.textContent = file.name;
+    state.imgHintState = { type: 'loaded', fileName: file.name };
+    renderImgHint();
     await fontsReady;
     render();
   } catch (err) {
     URL.revokeObjectURL(url);
-    setError('Das Bild konnte nicht geladen werden.');
+    setError('errorImageLoad');
   }
 });
 
