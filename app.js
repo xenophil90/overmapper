@@ -245,9 +245,18 @@ function detectCountries(segments) {
 
 /* ---------- Formatting ---------- */
 
-function formatDistanceParts(meters) {
-  if (meters >= 1000) return { value: (meters / 1000).toFixed(1), unit: 'km' };
-  return { value: String(Math.round(meters)), unit: 'm' };
+const METERS_PER_MILE = 1609.344;
+const METERS_PER_FOOT = 0.3048;
+
+function formatDistanceParts(meters, unitSystem) {
+  const imperial = unitSystem === 'imperial';
+  const large = imperial ? METERS_PER_MILE : 1000;
+  const small = imperial ? METERS_PER_FOOT : 1;
+  // Only switch to the large unit once its rounded value reaches 1, so 999 m stays "999 m".
+  if (meters >= large * 0.9995) {
+    return { value: String(Math.round(meters / large)), unit: imperial ? 'mi' : 'km' };
+  }
+  return { value: String(Math.round(meters / small)), unit: imperial ? 'ft' : 'm' };
 }
 
 function withAlpha(hex, alpha) {
@@ -378,12 +387,12 @@ function drawTitleText(ctx, w, h, anchor, color, title) {
   ctx.fillText(title.toUpperCase(), anchor.x, singleLineBaseline(anchor, fontPx));
 }
 
-function drawDistanceText(ctx, w, h, anchor, color, distanceMeters) {
+function drawDistanceText(ctx, w, h, anchor, color, distanceMeters, unitSystem) {
   const distFontPx = Math.round(w * 0.095);
   const unitFontPx = Math.round(w * 0.034);
   const distBaseline = singleLineBaseline(anchor, distFontPx);
 
-  const { value, unit } = formatDistanceParts(distanceMeters);
+  const { value, unit } = formatDistanceParts(distanceMeters, unitSystem);
   const valueFont = `800 ${distFontPx}px Inter, sans-serif`;
   const unitFont = `600 ${unitFontPx}px Inter, sans-serif`;
   const gap = w * 0.014;
@@ -533,6 +542,9 @@ const state = {
   flagImages: new Map(),
   imageTransform: { zoom: 1, panX: 0, panY: 0 },
   lang: window.DEFAULT_LANG,
+  unitSystem: 'metric',
+  ratio: { w: 4, h: 5 },
+  shortEdge: 1080,
   gpxHintState: { type: 'none' },
   imgHintState: { type: 'none' },
   errorCode: null,
@@ -544,8 +556,6 @@ const layout = {
   distance: 'bottom-left',
   flags: 'bottom-right',
 };
-
-let currentPreset = '1080x1350';
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -567,6 +577,16 @@ const gpxHint = document.getElementById('gpxHint');
 const imgHint = document.getElementById('imgHint');
 const placeholder = document.getElementById('placeholder');
 const langSelect = document.getElementById('langSelect');
+const presetSegmented = document.getElementById('presetSegmented');
+const unitSegmented = document.getElementById('unitSegmented');
+const customRatioToggle = document.getElementById('customRatioToggle');
+const customRatio = document.getElementById('customRatio');
+const ratioW = document.getElementById('ratioW');
+const ratioH = document.getElementById('ratioH');
+const resolutionSegmented = document.getElementById('resolutionSegmented');
+const exportSizeHint = document.getElementById('exportSizeHint');
+const gpxDrop = document.getElementById('gpxDrop');
+const imgDrop = document.getElementById('imgDrop');
 
 function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
@@ -575,6 +595,47 @@ function clamp(v, min, max) {
 function t(key) {
   const dict = window.TRANSLATIONS[state.lang] || window.TRANSLATIONS[window.DEFAULT_LANG];
   return dict[key];
+}
+
+/* ---------- Export size (aspect ratio x short edge) ---------- */
+
+const MIN_RATIO_PART = 0.1;
+const MAX_RATIO_PART = 100;
+const MAX_CANVAS_PX = 8000;
+
+function clampRatioPart(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return 1;
+  return clamp(n, MIN_RATIO_PART, MAX_RATIO_PART);
+}
+
+function getCanvasSize() {
+  const rw = clampRatioPart(state.ratio.w);
+  const rh = clampRatioPart(state.ratio.h);
+  // The short edge is the one the resolution setting pins down.
+  let width;
+  let height;
+  if (rw <= rh) {
+    width = state.shortEdge;
+    height = Math.round((state.shortEdge * rh) / rw);
+  } else {
+    height = state.shortEdge;
+    width = Math.round((state.shortEdge * rw) / rh);
+  }
+  const longest = Math.max(width, height);
+  if (longest > MAX_CANVAS_PX) {
+    const f = MAX_CANVAS_PX / longest;
+    width = Math.round(width * f);
+    height = Math.round(height * f);
+  }
+  return { width, height };
+}
+
+function renderExportSizeHint() {
+  const { width, height } = getCanvasSize();
+  exportSizeHint.textContent = t('hintExportSize')
+    .replace('{w}', String(width))
+    .replace('{h}', String(height));
 }
 
 function setError(code) {
@@ -604,6 +665,14 @@ function detectInitialLang() {
   return window.DEFAULT_LANG;
 }
 
+function detectInitialUnitSystem() {
+  try {
+    const saved = localStorage.getItem('overmapper-units');
+    if (saved === 'metric' || saved === 'imperial') return saved;
+  } catch (err) { /* localStorage unavailable */ }
+  return 'metric';
+}
+
 function applyLanguage(lang) {
   state.lang = window.SUPPORTED_LANGS.includes(lang) ? lang : window.DEFAULT_LANG;
   document.documentElement.lang = state.lang;
@@ -614,10 +683,14 @@ function applyLanguage(lang) {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+  });
   langSelect.value = state.lang;
 
   renderGpxHint();
   renderImgHint();
+  renderExportSizeHint();
   errorMsg.textContent = state.errorCode ? t(state.errorCode) : '';
 
   try {
@@ -629,9 +702,10 @@ langSelect.addEventListener('change', () => applyLanguage(langSelect.value));
 applyLanguage(detectInitialLang());
 
 function render() {
-  const [w, h] = currentPreset.split('x').map(Number);
+  const { width: w, height: h } = getCanvasSize();
   canvas.width = w;
   canvas.height = h;
+  renderExportSizeHint();
 
   if (!state.image || !state.segments) {
     ctx.fillStyle = '#0f1013';
@@ -680,7 +754,7 @@ function render() {
 
   if (distanceEnabled.checked) {
     const distanceAnchor = getAnchor(layout.distance, w, h);
-    drawDistanceText(ctx, w, h, distanceAnchor, textColor.value, state.metrics.distanceMeters);
+    drawDistanceText(ctx, w, h, distanceAnchor, textColor.value, state.metrics.distanceMeters, state.unitSystem);
   }
 
   if (flagsEnabled.checked) {
@@ -691,15 +765,112 @@ function render() {
   downloadBtn.disabled = false;
 }
 
-const presetButtons = document.querySelectorAll('#presetSegmented .segmented-btn');
-presetButtons.forEach((btn) => {
-  if (btn.dataset.value === currentPreset) btn.classList.add('active');
-  btn.addEventListener('click', () => {
-    presetButtons.forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPreset = btn.dataset.value;
+function bindSegmented(container, initialValue, onChange) {
+  const buttons = container.querySelectorAll('.segmented-btn');
+  const setActive = (value) => {
+    buttons.forEach((b) => {
+      const active = b.dataset.value === value;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', String(active));
+    });
+  };
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setActive(btn.dataset.value);
+      onChange(btn.dataset.value);
+    });
+  });
+  setActive(initialValue);
+  return setActive;
+}
+
+function parseRatio(value) {
+  const [w, h] = value.split(':').map(Number);
+  return { w, h };
+}
+
+function readCustomRatio() {
+  return { w: clampRatioPart(ratioW.value), h: clampRatioPart(ratioH.value) };
+}
+
+let lastPreset = '4:5';
+
+const setPresetActive = bindSegmented(presetSegmented, lastPreset, (value) => {
+  lastPreset = value;
+  state.ratio = parseRatio(value);
+  customRatio.classList.add('hidden');
+  customRatioToggle.setAttribute('aria-expanded', 'false');
+  render();
+});
+
+customRatioToggle.addEventListener('click', () => {
+  const on = customRatio.classList.contains('hidden');
+  customRatio.classList.toggle('hidden', !on);
+  customRatioToggle.setAttribute('aria-expanded', String(on));
+  // Deselect the presets while a custom ratio is active, so only one is highlighted.
+  setPresetActive(on ? null : lastPreset);
+  state.ratio = on ? readCustomRatio() : parseRatio(lastPreset);
+  render();
+});
+
+[ratioW, ratioH].forEach((input) => {
+  input.addEventListener('input', () => {
+    state.ratio = readCustomRatio();
     render();
   });
+  // Only write the clamped value back on blur, so typing isn't fought mid-entry.
+  input.addEventListener('change', () => {
+    input.value = String(clampRatioPart(input.value));
+    state.ratio = readCustomRatio();
+    render();
+  });
+});
+
+bindSegmented(resolutionSegmented, String(state.shortEdge), (value) => {
+  state.shortEdge = Number(value);
+  render();
+});
+
+function bindDropzone(zone, input) {
+  zone.addEventListener('click', (e) => {
+    if (e.target !== input) input.click();
+  });
+  ['dragenter', 'dragover'].forEach((type) => {
+    zone.addEventListener(type, (e) => {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'dragend'].forEach((type) => {
+    zone.addEventListener(type, () => zone.classList.remove('dragover'));
+  });
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer && e.dataTransfer.files[0];
+    if (!file) return;
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  });
+}
+
+bindDropzone(gpxDrop, gpxInput);
+bindDropzone(imgDrop, imgInput);
+
+// Keep a file dropped next to a zone from navigating the page away.
+['dragover', 'drop'].forEach((type) => {
+  window.addEventListener(type, (e) => e.preventDefault());
+});
+
+state.unitSystem = detectInitialUnitSystem();
+bindSegmented(unitSegmented, state.unitSystem, (value) => {
+  state.unitSystem = value;
+  try {
+    localStorage.setItem('overmapper-units', state.unitSystem);
+  } catch (err) { /* localStorage unavailable */ }
+  render();
 });
 
 function bindEnableToggle(checkbox, dimTargets) {
@@ -714,7 +885,7 @@ function bindEnableToggle(checkbox, dimTargets) {
 bindEnableToggle(trackEnabled, [document.getElementById('trackControls')]);
 bindEnableToggle(flagsEnabled, []);
 bindEnableToggle(titleEnabled, [titleInput]);
-bindEnableToggle(distanceEnabled, []);
+bindEnableToggle(distanceEnabled, [unitSegmented]);
 
 const MAX_GPX_FILE_SIZE = 50 * 1024 * 1024;
 

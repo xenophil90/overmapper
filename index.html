@@ -19,7 +19,7 @@
         </div>
       </div>
       <div class="lang-switch">
-        <select id="langSelect" aria-label="Sprache / Language">
+        <select id="langSelect" aria-label="Sprache / Language" data-i18n-aria-label="langSelectLabel">
           <option value="de">Deutsch</option>
           <option value="en">English</option>
         </select>
@@ -33,23 +33,49 @@
           <h2 class="panel-title" data-i18n="panelSourceData">Quelldaten</h2>
           <div class="field">
             <label for="gpxInput" data-i18n="labelGpxFile">GPX-Datei</label>
-            <input type="file" id="gpxInput" accept=".gpx,application/gpx+xml,text/xml,application/xml">
+            <div class="dropzone" id="gpxDrop">
+              <input type="file" id="gpxInput" class="file-input" accept=".gpx,application/gpx+xml,text/xml,application/xml">
+              <span data-i18n="dropHint">Datei hierher ziehen oder klicken</span>
+            </div>
             <p class="hint" id="gpxHint" data-i18n="hintNoGpx">Noch keine Datei geladen</p>
           </div>
           <div class="field">
             <label for="imgInput" data-i18n="labelBackgroundImage">Hintergrundbild</label>
-            <input type="file" id="imgInput" accept="image/*">
+            <div class="dropzone" id="imgDrop">
+              <input type="file" id="imgInput" class="file-input" accept="image/*">
+              <span data-i18n="dropHint">Datei hierher ziehen oder klicken</span>
+            </div>
             <p class="hint" id="imgHint" data-i18n="hintNoImage">Noch kein Bild geladen</p>
           </div>
         </div>
 
         <div class="panel">
-          <h2 class="panel-title" data-i18n="panelFormat">Format</h2>
-          <div class="segmented" id="presetSegmented" role="group">
-            <button type="button" class="segmented-btn" data-value="1080x1350">4:5</button>
-            <button type="button" class="segmented-btn" data-value="1080x1920">9:16</button>
-            <button type="button" class="segmented-btn" data-value="1080x1080">1:1</button>
-            <button type="button" class="segmented-btn" data-value="1200x630">16:9</button>
+          <div class="panel-title-row">
+            <h2 class="panel-title" data-i18n="panelFormat">Format</h2>
+            <button type="button" id="customRatioToggle" class="link-btn" data-i18n="btnCustomRatio" aria-expanded="false">Eigenes Verhältnis</button>
+          </div>
+          <div class="segmented" id="presetSegmented" role="group" data-i18n-aria-label="panelFormat">
+            <button type="button" class="segmented-btn" data-value="4:5">4:5</button>
+            <button type="button" class="segmented-btn" data-value="9:16">9:16</button>
+            <button type="button" class="segmented-btn" data-value="1:1">1:1</button>
+            <button type="button" class="segmented-btn" data-value="16:9">16:9</button>
+          </div>
+          <div class="custom-ratio hidden" id="customRatio">
+            <div class="ratio-row">
+              <input type="number" id="ratioW" min="0.1" max="100" step="0.05" value="16" data-i18n-aria-label="labelRatioWidth">
+              <span class="ratio-sep" aria-hidden="true">:</span>
+              <input type="number" id="ratioH" min="0.1" max="100" step="0.05" value="9" data-i18n-aria-label="labelRatioHeight">
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3 class="panel-title" data-i18n="panelResolution">Auflösung</h3>
+            <div class="segmented" id="resolutionSegmented" role="group" data-i18n-aria-label="panelResolution">
+              <button type="button" class="segmented-btn" data-value="1080">1080</button>
+              <button type="button" class="segmented-btn" data-value="1440">1440</button>
+              <button type="button" class="segmented-btn" data-value="2160">2160</button>
+            </div>
+            <p class="hint" id="exportSizeHint"></p>
           </div>
         </div>
 
@@ -110,6 +136,10 @@
                 <input type="checkbox" id="distanceEnabled" checked>
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
+            </div>
+            <div class="segmented" id="unitSegmented" role="group" data-i18n-aria-label="labelUnit">
+              <button type="button" class="segmented-btn" data-value="metric">km</button>
+              <button type="button" class="segmented-btn" data-value="imperial">mi</button>
             </div>
           </div>
         </div>
