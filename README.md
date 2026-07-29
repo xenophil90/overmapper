@@ -4,12 +4,14 @@ Turn a GPX track and a background photo into a clean, shareable poster: an abstr
 
 ## Features
 
-- Upload a GPX file and a background photo
+- Drop in (or pick) a GPX file and a background photo
 - Abstract, minimalist route rendering with adjustable color
 - Pan & zoom the background image to frame it exactly how you want
 - Title, distance, and country flags — each independently shown or hidden
+- Distance in metric (km) or imperial (mi) units
+- German/English interface
 - Optional faint outlines of the countries your route passed through
-- Export as PNG in common social/mobile formats (4:5, 9:16, 1:1, 16:9)
+- Export as PNG: pick an aspect ratio (4:5, 9:16, 1:1, 16:9, or your own) and a resolution independently
 - Fixed, watermark-style logo
 - Runs 100% in the browser — no backend, no accounts, no data ever leaves your device
 

@@ -122,6 +122,7 @@ body {
   margin-bottom: 14px;
 }
 .panel-title-row .panel-title { margin: 0; }
+.subsection .panel-title { margin: 0; }
 
 .dimmed {
   opacity: 0.35;
@@ -149,8 +150,8 @@ body {
   border-top: 1px solid var(--panel-border);
 }
 
-input[type="file"],
-input[type="text"] {
+input[type="text"],
+input[type="number"] {
   background: var(--field-bg);
   border: 1px solid var(--panel-border);
   color: var(--text);
@@ -160,17 +161,46 @@ input[type="text"] {
   font-size: 0.88rem;
 }
 
-input[type="file"]::file-selector-button {
-  background: rgba(255,255,255,0.08);
-  border: none;
-  color: var(--text);
-  border-radius: 6px;
-  padding: 5px 10px;
-  margin-right: 10px;
-  font-family: inherit;
+/* Drag & drop file zones */
+.dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62px;
+  padding: 12px;
+  text-align: center;
+  background: var(--field-bg);
+  border: 1px dashed var(--panel-border);
+  border-radius: 12px;
+  color: var(--muted);
   font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
+.dropzone:hover { border-color: rgba(255,255,255,0.22); color: var(--text); }
+.dropzone.dragover {
+  border-style: solid;
+  border-color: var(--accent);
+  background: rgba(124,108,255,0.12);
+  color: var(--text);
+}
+.dropzone:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.file-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Custom aspect ratio */
+.custom-ratio { margin-top: 12px; }
+.custom-ratio.hidden { display: none; }
+.ratio-row { display: flex; align-items: center; gap: 8px; }
+.ratio-row input[type="number"] { flex: 1; min-width: 0; text-align: center; }
+.ratio-sep { color: var(--muted); font-size: 1rem; font-weight: 700; }
 
 input[type="range"] {
   width: 100%;
@@ -265,6 +295,21 @@ input[type="color"].swatch::-moz-color-swatch { border: none; border-radius: 8px
 
 .toggle-compact { margin-top: 0; }
 
+/* The switch input is visually hidden, so mirror its focus onto the track. */
+.toggle input:focus-visible + .toggle-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.segmented-btn:focus-visible,
+.link-btn:focus-visible,
+input[type="text"]:focus-visible,
+input[type="number"]:focus-visible,
+#downloadBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* Buttons */
 button {
   font-family: inherit;
@@ -358,5 +403,8 @@ button {
 .placeholder.hidden { display: none; }
 
 @media (max-width: 840px) {
-  .preview { position: static; top: auto; }
+  /* Show the preview above the controls, so adjustments are visible while scrolling to them. */
+  .preview { position: static; top: auto; order: -1; }
+  .canvas-wrap,
+  #canvas { max-height: 45vh; }
 }
