@@ -19,10 +19,16 @@
         </div>
       </div>
       <div class="lang-switch">
-        <select id="langSelect" aria-label="Sprache / Language" data-i18n-aria-label="langSelectLabel">
-          <option value="de">Deutsch</option>
-          <option value="en">English</option>
-        </select>
+        <button type="button" id="langButton" class="lang-button" aria-haspopup="listbox" aria-expanded="false" aria-label="Sprache / Language" data-i18n-aria-label="langSelectLabel">
+          <span id="langButtonLabel">Deutsch</span>
+          <svg class="lang-caret" viewBox="0 0 10 6" aria-hidden="true" focusable="false">
+            <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <ul class="lang-menu hidden" id="langMenu" role="listbox" aria-label="Sprache / Language" data-i18n-aria-label="langSelectLabel">
+          <li class="lang-option" role="option" tabindex="-1" data-value="de" aria-selected="true">Deutsch</li>
+          <li class="lang-option" role="option" tabindex="-1" data-value="en" aria-selected="false">English</li>
+        </ul>
       </div>
     </header>
 
@@ -111,6 +117,18 @@
         </div>
 
         <div class="panel">
+          <div class="panel-title-row">
+            <h2 class="panel-title" data-i18n="panelProfile">Höhenprofil</h2>
+            <label class="toggle toggle-compact">
+              <input type="checkbox" id="profileEnabled">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+          <p class="hint" data-i18n="hintProfile">Wird über der Kennzahlen-Zeile eingeblendet.</p>
+          <p class="hint hidden" id="profileHint"></p>
+        </div>
+
+        <div class="panel">
           <h2 class="panel-title" data-i18n="panelText">Text</h2>
 
           <div class="field">
@@ -130,6 +148,8 @@
           </div>
 
           <div class="subsection">
+            <h3 class="panel-title" data-i18n="panelStats">Kennzahlen</h3>
+
             <div class="row-label">
               <label data-i18n="labelDistance">Entfernung</label>
               <label class="toggle toggle-compact">
@@ -141,6 +161,24 @@
               <button type="button" class="segmented-btn" data-value="metric">km</button>
               <button type="button" class="segmented-btn" data-value="imperial">mi</button>
             </div>
+
+            <div class="row-label">
+              <label data-i18n="labelElevation">Höhenmeter</label>
+              <label class="toggle toggle-compact">
+                <input type="checkbox" id="elevationEnabled" checked>
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+            </div>
+            <p class="hint hidden" id="elevationHint"></p>
+
+            <div class="row-label">
+              <label data-i18n="labelDuration">Dauer</label>
+              <label class="toggle toggle-compact">
+                <input type="checkbox" id="durationEnabled" checked>
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+            </div>
+            <p class="hint hidden" id="durationHint"></p>
           </div>
         </div>
 
