@@ -4,15 +4,37 @@ Turn a GPX track and a background photo into a clean, shareable poster: an abstr
 
 ## Features
 
-- Drop in (or pick) a GPX file and a background photo
-- Abstract, minimalist route rendering with adjustable color
+**Input**
+
+- Drag & drop (or pick) a GPX file and a background photo
 - Pan & zoom the background image to frame it exactly how you want
-- Title, distance, and country flags — each independently shown or hidden
-- Distance in metric (km) or imperial (mi) units
-- German/English interface
-- Optional faint outlines of the countries your route passed through
-- Export as PNG: pick an aspect ratio (4:5, 9:16, 1:1, 16:9, or your own) and a resolution independently
+
+**On the poster**
+
+- Abstract, minimalist route line with adjustable colour, plus start and finish markers
+- Title, up to 60 characters, wrapped over two lines when it gets long
+- Distance, elevation gain and duration — read straight from the track, each shown or hidden on its own
+- Flags of the countries the route passed through, with optional faint outlines of their borders
+- Optional elevation profile, plotted over travelled distance rather than point index
 - Fixed, watermark-style logo
+
+Elevation gain is summed with a 5 m threshold, so GPS jitter does not inflate it into
+fantasy numbers. Duration is summed per track segment, so a stopped recording between
+two segments is not counted as time on the move. If a GPX file carries no elevation or
+no timestamps, the affected switches are disabled and say why.
+
+**Layout**
+
+The poster is a fixed vertical stack — title, route, elevation profile, then a bottom row
+of stats and flags. Every block is measured before the one above it is placed, so nothing
+can collide no matter how many flags or stats are shown. Type and flags scale with the
+poster's short edge, so landscape formats stay in proportion.
+
+**Output**
+
+- Export as PNG, with aspect ratio (4:5, 9:16, 1:1, 16:9, or your own) and resolution picked independently
+- Distance and elevation in metric (km/m) or imperial (mi/ft) units
+- German/English interface, remembered between visits
 - Runs 100% in the browser — no backend, no accounts, no data ever leaves your device
 
 ## Usage
