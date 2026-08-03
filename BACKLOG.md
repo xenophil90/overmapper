@@ -20,8 +20,40 @@ Ideen und offene Punkte für später — keine davon ist aktuell in Arbeit.
 - [x] Falsches Preset-Label korrigiert: der "16:9"-Button lieferte 1200×630,
   also 40:21 (die Open-Graph-Größe für Link-Vorschauen). Jetzt echtes 16:9.
 - [x] Barrierefreiheit: sichtbarer Fokus-Ring für die Toggle-Switches sowie für
-  Segmented-Buttons, Link-Buttons und Textfelder. Die Segmented-Controls haben
-  zusätzlich `aria-label` und `aria-pressed`.
+  Segmented-Buttons, Link-Buttons und Textfelder.
+- [x] **Barrierefreiheit nach EN 301 549 / WCAG 2.1–2.2 AA.** Maßstab ist der
+  European Accessibility Act, auch wenn die App als kostenlose, rein
+  clientseitige Anwendung nicht unter das BFSG fallen dürfte:
+  - Alle Bedienelemente haben jetzt einen zugänglichen Namen. Die sechs
+    kompakten Toggle-Switches waren komplett unbeschriftet (`aria-label` über
+    `data-i18n-aria-label`), die beiden Farbwähler hingen an verwaisten
+    `<label>`-Elementen ohne `for` und heißen jetzt "Trackfarbe"/"Textfarbe".
+    Bei Entfernung/Höhenmeter/Dauer beschriftet die sichtbare Zeile den Schalter
+    per `for` und ist damit gleich Klickfläche.
+  - Der Canvas ist `role="img"` mit einem bei jedem Render neu gebauten
+    `aria-label` (`canvasDescription()`): Titel, Kennzahlen und Länder als Text.
+    Ländernamen kommen über `Intl.DisplayNames` in der UI-Sprache statt englisch
+    aus dem Natural-Earth-Datensatz.
+  - Der Bildausschnitt lässt sich über zwei Regler verschieben, nicht mehr nur
+    per Drag (WCAG 2.1.1 und 2.5.7). `syncImageInputs()` hält Regler und
+    `state.imageTransform` in beide Richtungen synchron.
+  - `#errorMsg` ist `role="alert"`; Datei- und Verfügbarkeitsmeldungen laufen
+    zusätzlich über eine dauerhaft eingehängte `aria-live`-Region
+    (`#statusAnnouncer`) — die sichtbaren Hinweise schalten `.hidden` und wären
+    zum Zeitpunkt der Änderung nicht im Accessibility-Tree.
+  - Abgeschaltete Blöcke bekommen `inert` statt nur `opacity`/`pointer-events`,
+    sonst landet der Tastaturfokus in nicht bedienbaren Bereichen.
+  - Segmented-Controls sind echte Radiogruppen (`role="radiogroup"`/`radio`,
+    `aria-checked`) mit Roving-Tabindex und Pfeil-/Home-/End-Navigation.
+  - Tap-Ziele auf min. 24 px (WCAG 2.5.8) über Padding, ohne die Optik zu ändern.
+  - `@media (forced-colors: active)`: im Windows-Kontrastmodus verschwinden die
+    Verläufe, die hier Ein/Aus und Auswahl tragen — jetzt über Systemfarben.
+  - `color-scheme` von `light dark` auf `dark` korrigiert; im Light-Modus wurden
+    Regler, Farbwähler und Scrollbars hell auf dunklem Grund gerendert.
+  - Sprachumschalter: Name aus echtem Text statt `aria-label`, damit die aktuelle
+    Sprache mit angesagt wird; `lang` an den Sprachnamen; `aria-controls`,
+    Home/End und Fokusrückgabe beim Schließen per Klick daneben.
+  - `prefers-reduced-motion` respektiert.
 - [x] Mobile Reihenfolge: unter 840 px steht die Vorschau jetzt über den Reglern.
 - [x] **Render-Optimierung.** Track-Punkte, die enger als 0,7 px beieinander
   liegen, werden beim Zeichnen übersprungen und direkt projiziert statt vorher
@@ -109,6 +141,11 @@ Nutzen pro Aufwand sortiert.
   schmaler ist.
 - [ ] Vorschau auf Mobil zusätzlich `sticky` machen — sie steht jetzt oben,
   scrollt beim Bedienen der unteren Panels aber weg.
+- [ ] `touch-action: none` auf dem Canvas blockiert auf Mobil das Scrollen über
+  der Vorschau, die dort 45 vh einnimmt. `pan-y` würde die Seite scrollbar
+  machen, kostet aber das vertikale Verschieben per Finger. Seit es die
+  Pan-Regler gibt, wäre der Tausch vertretbar — ist aber eine Produktentscheidung
+  und deshalb bewusst offen gelassen.
 - [ ] Ladeanzeige für sehr große GPX-Dateien. Gemessen sind 60k Punkte in
   ~130 ms geparst, kritisch wird es erst im zweistelligen MB-Bereich.
 
@@ -125,6 +162,13 @@ Nutzen pro Aufwand sortiert.
     `haversine()`, `computeMetrics()`, `computeBounds()`,
     `computeElevationProfile()`, `pointInPolygonRings()`.
 - [ ] Keine CI-Pipeline im GitHub-Repo (z. B. Lint/Build-Check bei Push).
+- [ ] Kein automatisiertes Barrierefreiheits-Gate. Sinnvoll wäre `axe-core` über
+  Playwright gegen `index.html`, in beiden Sprachen und in drei Zuständen: leer,
+  GPX + Bild geladen, GPX ohne Höhendaten (deckt die `.dimmed`- und Hint-Pfade
+  ab). Ohne das wandern fehlende Namen und Live-Regionen mit der Zeit zurück.
+- [ ] Mit Screenreader gegenprüfen (VoiceOver/NVDA). Die aktuelle Umsetzung ist
+  gegen die Spezifikation gebaut und im Accessibility-Tree verifiziert, aber
+  nicht angehört — besonders `canvasDescription()` und die `aria-live`-Region.
 - [ ] `app.js` ist auf ~1500 Zeilen gewachsen und mischt Parsing, Geometrie,
   Zeichnen und UI-Verdrahtung in einer Datei. Eine Aufteilung in Module würde
   erst mit einem Build-Schritt oder ES-Modulen sinnvoll — beides bisher bewusst

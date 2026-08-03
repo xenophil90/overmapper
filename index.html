@@ -19,15 +19,18 @@
         </div>
       </div>
       <div class="lang-switch">
-        <button type="button" id="langButton" class="lang-button" aria-haspopup="listbox" aria-expanded="false" aria-label="Sprache / Language" data-i18n-aria-label="langSelectLabel">
-          <span id="langButtonLabel">Deutsch</span>
+        <!-- The name is built from real text, not aria-label, so the selected
+             language is announced along with it and keeps its own lang. -->
+        <button type="button" id="langButton" class="lang-button" aria-haspopup="listbox" aria-expanded="false" aria-controls="langMenu">
+          <span class="sr-only" data-i18n="langSelectLabel">Sprache</span>
+          <span id="langButtonLabel" lang="de">Deutsch</span>
           <svg class="lang-caret" viewBox="0 0 10 6" aria-hidden="true" focusable="false">
             <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         <ul class="lang-menu hidden" id="langMenu" role="listbox" aria-label="Sprache / Language" data-i18n-aria-label="langSelectLabel">
-          <li class="lang-option" role="option" tabindex="-1" data-value="de" aria-selected="true">Deutsch</li>
-          <li class="lang-option" role="option" tabindex="-1" data-value="en" aria-selected="false">English</li>
+          <li class="lang-option" role="option" tabindex="-1" data-value="de" lang="de" aria-selected="true">Deutsch</li>
+          <li class="lang-option" role="option" tabindex="-1" data-value="en" lang="en" aria-selected="false">English</li>
         </ul>
       </div>
     </header>
@@ -40,7 +43,7 @@
           <div class="field">
             <label for="gpxInput" data-i18n="labelGpxFile">GPX-Datei</label>
             <div class="dropzone" id="gpxDrop">
-              <input type="file" id="gpxInput" class="file-input" accept=".gpx,application/gpx+xml,text/xml,application/xml">
+              <input type="file" id="gpxInput" class="file-input" accept=".gpx,application/gpx+xml,text/xml,application/xml" aria-describedby="gpxHint">
               <span data-i18n="dropHint">Datei hierher ziehen oder klicken</span>
             </div>
             <p class="hint" id="gpxHint" data-i18n="hintNoGpx">Noch keine Datei geladen</p>
@@ -48,7 +51,7 @@
           <div class="field">
             <label for="imgInput" data-i18n="labelBackgroundImage">Hintergrundbild</label>
             <div class="dropzone" id="imgDrop">
-              <input type="file" id="imgInput" class="file-input" accept="image/*">
+              <input type="file" id="imgInput" class="file-input" accept="image/*" aria-describedby="imgHint">
               <span data-i18n="dropHint">Datei hierher ziehen oder klicken</span>
             </div>
             <p class="hint" id="imgHint" data-i18n="hintNoImage">Noch kein Bild geladen</p>
@@ -58,13 +61,13 @@
         <div class="panel">
           <div class="panel-title-row">
             <h2 class="panel-title" data-i18n="panelFormat">Format</h2>
-            <button type="button" id="customRatioToggle" class="link-btn" data-i18n="btnCustomRatio" aria-expanded="false">Eigenes Verhältnis</button>
+            <button type="button" id="customRatioToggle" class="link-btn" data-i18n="btnCustomRatio" aria-expanded="false" aria-controls="customRatio">Eigenes Verhältnis</button>
           </div>
-          <div class="segmented" id="presetSegmented" role="group" data-i18n-aria-label="panelFormat">
-            <button type="button" class="segmented-btn" data-value="4:5">4:5</button>
-            <button type="button" class="segmented-btn" data-value="9:16">9:16</button>
-            <button type="button" class="segmented-btn" data-value="1:1">1:1</button>
-            <button type="button" class="segmented-btn" data-value="16:9">16:9</button>
+          <div class="segmented" id="presetSegmented" role="radiogroup" data-i18n-aria-label="panelFormat">
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="4:5">4:5</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="9:16">9:16</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="1:1">1:1</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="16:9">16:9</button>
           </div>
           <div class="custom-ratio hidden" id="customRatio">
             <div class="ratio-row">
@@ -76,10 +79,10 @@
 
           <div class="subsection">
             <h3 class="panel-title" data-i18n="panelResolution">Auflösung</h3>
-            <div class="segmented" id="resolutionSegmented" role="group" data-i18n-aria-label="panelResolution">
-              <button type="button" class="segmented-btn" data-value="1080">1080</button>
-              <button type="button" class="segmented-btn" data-value="1440">1440</button>
-              <button type="button" class="segmented-btn" data-value="2160">2160</button>
+            <div class="segmented" id="resolutionSegmented" role="radiogroup" data-i18n-aria-label="panelResolution">
+              <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="1080">1080</button>
+              <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="1440">1440</button>
+              <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="2160">2160</button>
             </div>
             <p class="hint" id="exportSizeHint"></p>
           </div>
@@ -93,7 +96,16 @@
               <button type="button" id="resetImageBtn" class="link-btn" data-i18n="btnReset">Zurücksetzen</button>
             </div>
             <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1">
-            <p class="hint" data-i18n="hintDragPreview">In der Vorschau ziehen, um den Ausschnitt zu verschieben.</p>
+          </div>
+          <!-- Keyboard/single-pointer equivalent for dragging the preview. -->
+          <div class="field">
+            <label for="panXRange" data-i18n="labelPanX">Horizontal verschieben</label>
+            <input type="range" id="panXRange" min="-1" max="1" step="0.01" value="0">
+          </div>
+          <div class="field">
+            <label for="panYRange" data-i18n="labelPanY">Vertikal verschieben</label>
+            <input type="range" id="panYRange" min="-1" max="1" step="0.01" value="0">
+            <p class="hint" data-i18n="hintDragPreview">In der Vorschau ziehen oder die Regler nutzen, um den Ausschnitt zu verschieben.</p>
           </div>
         </div>
 
@@ -101,12 +113,12 @@
           <div class="panel-title-row">
             <h2 class="panel-title" data-i18n="panelTrack">Track</h2>
             <label class="toggle toggle-compact">
-              <input type="checkbox" id="trackEnabled" checked>
+              <input type="checkbox" id="trackEnabled" data-i18n-aria-label="toggleTrack" checked>
               <span class="toggle-track"><span class="toggle-thumb"></span></span>
             </label>
           </div>
           <div class="field" id="trackControls">
-            <label data-i18n="labelColor">Farbe</label>
+            <label for="accentColor" data-i18n="labelTrackColor">Trackfarbe</label>
             <input type="color" id="accentColor" value="#ffffff" class="swatch">
           </div>
           <label class="toggle">
@@ -120,7 +132,7 @@
           <div class="panel-title-row">
             <h2 class="panel-title" data-i18n="panelProfile">Höhenprofil</h2>
             <label class="toggle toggle-compact">
-              <input type="checkbox" id="profileEnabled">
+              <input type="checkbox" id="profileEnabled" data-i18n-aria-label="toggleProfile" aria-describedby="profileHint">
               <span class="toggle-track"><span class="toggle-thumb"></span></span>
             </label>
           </div>
@@ -132,7 +144,7 @@
           <h2 class="panel-title" data-i18n="panelText">Text</h2>
 
           <div class="field">
-            <label data-i18n="labelColor">Farbe</label>
+            <label for="textColor" data-i18n="labelTextColor">Textfarbe</label>
             <input type="color" id="textColor" value="#ffffff" class="swatch">
           </div>
 
@@ -140,7 +152,7 @@
             <div class="row-label">
               <label for="titleInput" data-i18n="labelTitle">Titel</label>
               <label class="toggle toggle-compact">
-                <input type="checkbox" id="titleEnabled" checked>
+                <input type="checkbox" id="titleEnabled" data-i18n-aria-label="toggleTitle" checked>
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
             </div>
@@ -150,31 +162,33 @@
           <div class="subsection">
             <h3 class="panel-title" data-i18n="panelStats">Kennzahlen</h3>
 
+            <!-- The visible caption is the switch's label: `for` names it and
+                 makes the text a click target, no aria-label needed. -->
             <div class="row-label">
-              <label data-i18n="labelDistance">Entfernung</label>
+              <label for="distanceEnabled" data-i18n="labelDistance">Entfernung</label>
               <label class="toggle toggle-compact">
                 <input type="checkbox" id="distanceEnabled" checked>
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
             </div>
-            <div class="segmented" id="unitSegmented" role="group" data-i18n-aria-label="labelUnit">
-              <button type="button" class="segmented-btn" data-value="metric">km</button>
-              <button type="button" class="segmented-btn" data-value="imperial">mi</button>
+            <div class="segmented" id="unitSegmented" role="radiogroup" data-i18n-aria-label="labelUnit">
+              <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="metric">km</button>
+              <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="imperial">mi</button>
             </div>
 
             <div class="row-label">
-              <label data-i18n="labelElevation">Höhenmeter</label>
+              <label for="elevationEnabled" data-i18n="labelElevation">Höhenmeter</label>
               <label class="toggle toggle-compact">
-                <input type="checkbox" id="elevationEnabled" checked>
+                <input type="checkbox" id="elevationEnabled" aria-describedby="elevationHint" checked>
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
             </div>
             <p class="hint hidden" id="elevationHint"></p>
 
             <div class="row-label">
-              <label data-i18n="labelDuration">Dauer</label>
+              <label for="durationEnabled" data-i18n="labelDuration">Dauer</label>
               <label class="toggle toggle-compact">
-                <input type="checkbox" id="durationEnabled" checked>
+                <input type="checkbox" id="durationEnabled" aria-describedby="durationHint" checked>
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
             </div>
@@ -186,7 +200,7 @@
           <div class="panel-title-row">
             <h2 class="panel-title" data-i18n="panelFlags">Flaggen</h2>
             <label class="toggle toggle-compact">
-              <input type="checkbox" id="flagsEnabled" checked>
+              <input type="checkbox" id="flagsEnabled" data-i18n-aria-label="toggleFlags" checked>
               <span class="toggle-track"><span class="toggle-thumb"></span></span>
             </label>
           </div>
@@ -196,13 +210,18 @@
 
       <section class="preview">
         <div class="canvas-wrap">
-          <canvas id="canvas" width="1080" height="1350"></canvas>
+          <!-- aria-label is rebuilt on every render — see canvasDescription(). -->
+          <canvas id="canvas" role="img" width="1080" height="1350"></canvas>
           <p class="placeholder" id="placeholder" data-i18n="placeholderCanvas">Lade eine GPX-Datei und ein Hintergrundbild, um die Vorschau zu sehen.</p>
         </div>
         <button id="downloadBtn" disabled data-i18n="btnDownload">Poster herunterladen (PNG)</button>
-        <p class="error" id="errorMsg"></p>
+        <p class="error" id="errorMsg" role="alert"></p>
       </section>
     </main>
+
+    <!-- Always present and never display:none, so live announcements land.
+         The visible hints toggle .hidden, which would drop them from the tree. -->
+    <p class="sr-only" id="statusAnnouncer" aria-live="polite"></p>
   </div>
 
   <script src="data/countries.js"></script>

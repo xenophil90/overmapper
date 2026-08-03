@@ -978,6 +978,8 @@ const accentColor = document.getElementById('accentColor');
 const textColor = document.getElementById('textColor');
 const titleInput = document.getElementById('titleInput');
 const zoomRange = document.getElementById('zoomRange');
+const panXRange = document.getElementById('panXRange');
+const panYRange = document.getElementById('panYRange');
 const resetImageBtn = document.getElementById('resetImageBtn');
 const showBordersCheckbox = document.getElementById('showBordersCheckbox');
 const trackEnabled = document.getElementById('trackEnabled');
@@ -1009,6 +1011,18 @@ const resolutionSegmented = document.getElementById('resolutionSegmented');
 const exportSizeHint = document.getElementById('exportSizeHint');
 const gpxDrop = document.getElementById('gpxDrop');
 const imgDrop = document.getElementById('imgDrop');
+const statusAnnouncer = document.getElementById('statusAnnouncer');
+
+// Screen-reader announcement for things that only show up as a visual change:
+// a file that loaded, a metric a track has no data for. Errors go through
+// #errorMsg, which is a role="alert" and announces on its own.
+// Clearing first makes an identical repeated message count as a change.
+function announce(message) {
+  statusAnnouncer.textContent = '';
+  requestAnimationFrame(() => {
+    statusAnnouncer.textContent = message;
+  });
+}
 
 function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
@@ -1174,7 +1188,11 @@ function syncLangMenu() {
   langOptions.forEach((option) => {
     const selected = option.dataset.value === state.lang;
     option.setAttribute('aria-selected', String(selected));
-    if (selected) langButtonLabel.textContent = option.textContent;
+    if (selected) {
+      langButtonLabel.textContent = option.textContent;
+      // "Deutsch" / "English" are each in their own language, not the page's.
+      langButtonLabel.lang = option.lang;
+    }
   });
 }
 
@@ -1211,6 +1229,12 @@ langOptions.forEach((option, i) => {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       langOptions[(i - 1 + langOptions.length) % langOptions.length].focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      langOptions[0].focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      langOptions[langOptions.length - 1].focus();
     } else if (e.key === 'Tab') {
       setLangMenuOpen(false);
     }
@@ -1219,7 +1243,10 @@ langOptions.forEach((option, i) => {
 
 document.addEventListener('pointerdown', (e) => {
   if (!langMenu.classList.contains('hidden') && !e.target.closest('.lang-switch')) {
+    // Hiding the menu while an option holds focus would drop focus to <body>.
+    const focusWasInside = langMenu.contains(document.activeElement);
     setLangMenuOpen(false);
+    if (focusWasInside) langButton.focus();
   }
 });
 
@@ -1323,6 +1350,35 @@ function isPosterReady() {
   return Boolean(state.image && state.segments);
 }
 
+// The country dataset carries English names only. The flags on the poster are
+// language-neutral, but the spoken description should not be — so translate via
+// the ISO code and keep the dataset name as the fallback.
+function countryName(country) {
+  try {
+    const display = new Intl.DisplayNames([state.lang], { type: 'region' });
+    return display.of(country.iso2.toUpperCase()) || country.name;
+  } catch (err) {
+    return country.name;
+  }
+}
+
+// The poster is pixels on a canvas, so its content has to be restated as text.
+// Mirrors what is actually drawn — the switched-off blocks are left out.
+function canvasDescription() {
+  if (!isPosterReady()) return t('placeholderCanvas');
+
+  const parts = [t('canvasLabel')];
+  const title = titleEnabled.checked ? titleInput.value.trim() : '';
+  if (title) parts.push(title);
+
+  collectStats().forEach((s) => parts.push(`${s.label} ${s.value} ${s.unit}`));
+
+  if (flagsEnabled.checked && state.countries && state.countries.length) {
+    parts.push(`${t('canvasCountries')}: ${state.countries.map(countryName).join(', ')}`);
+  }
+  return `${parts.join('. ')}.`;
+}
+
 function renderPreview() {
   const { width: w, height: h } = getPreviewSize();
   // Assigning width/height reallocates the backing store and clears it, so only
@@ -1338,12 +1394,14 @@ function renderPreview() {
     ctx.fillRect(0, 0, w, h);
     placeholder.classList.remove('hidden');
     downloadBtn.disabled = true;
+    canvas.setAttribute('aria-label', canvasDescription());
     return;
   }
 
   placeholder.classList.add('hidden');
   drawPoster(ctx, w, h);
   downloadBtn.disabled = false;
+  canvas.setAttribute('aria-label', canvasDescription());
 }
 
 function renderExportCanvas() {
@@ -1355,21 +1413,48 @@ function renderExportCanvas() {
   return out;
 }
 
+// These are mutually exclusive choices, so they are exposed as a radio group:
+// arrow keys move and select, and only one button sits in the tab order.
 function bindSegmented(container, initialValue, onChange) {
-  const buttons = container.querySelectorAll('.segmented-btn');
+  const buttons = [...container.querySelectorAll('.segmented-btn')];
+
   const setActive = (value) => {
-    buttons.forEach((b) => {
-      const active = b.dataset.value === value;
+    const activeIndex = buttons.findIndex((b) => b.dataset.value === value);
+    buttons.forEach((b, i) => {
+      const active = i === activeIndex;
       b.classList.toggle('active', active);
-      b.setAttribute('aria-pressed', String(active));
+      b.setAttribute('aria-checked', String(active));
+      // With nothing selected (custom ratio), the first button keeps the group
+      // reachable — otherwise tabbing would skip it entirely.
+      b.tabIndex = (activeIndex === -1 ? i === 0 : active) ? 0 : -1;
     });
   };
-  buttons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      setActive(btn.dataset.value);
-      onChange(btn.dataset.value);
+
+  const select = (btn) => {
+    setActive(btn.dataset.value);
+    onChange(btn.dataset.value);
+  };
+
+  buttons.forEach((btn, i) => {
+    btn.addEventListener('click', () => select(btn));
+    btn.addEventListener('keydown', (e) => {
+      let target = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        target = buttons[(i + 1) % buttons.length];
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        target = buttons[(i - 1 + buttons.length) % buttons.length];
+      } else if (e.key === 'Home') {
+        target = buttons[0];
+      } else if (e.key === 'End') {
+        target = buttons[buttons.length - 1];
+      }
+      if (!target) return;
+      e.preventDefault();
+      target.focus();
+      select(target);
     });
   });
+
   setActive(initialValue);
   return setActive;
 }
@@ -1465,7 +1550,14 @@ bindSegmented(unitSegmented, state.unitSystem, (value) => {
 
 function bindEnableToggle(checkbox, dimTargets) {
   const sync = () => {
-    dimTargets.forEach((el) => el && el.classList.toggle('dimmed', !checkbox.checked));
+    const off = !checkbox.checked;
+    dimTargets.forEach((el) => {
+      if (!el) return;
+      el.classList.toggle('dimmed', off);
+      // Greyed out and click-through is not enough: without `inert` the controls
+      // stay tabbable, so the focus lands in a block that cannot be operated.
+      el.inert = off;
+    });
     render();
   };
   checkbox.addEventListener('change', sync);
@@ -1504,6 +1596,14 @@ gpxInput.addEventListener('change', async () => {
     state.gpxHintState = { type: 'loaded', fileName: file.name, pointCount };
     renderGpxHint();
     renderMetricAvailability();
+    // Together with the reason any metric was just switched off — that is a
+    // visual-only change otherwise. The hints already end in a full stop, the
+    // file line does not, so punctuate before joining.
+    announce([gpxHint, elevationHint, durationHint]
+      .map((el) => el.textContent.trim())
+      .filter(Boolean)
+      .map((s) => (/[.!?]$/.test(s) ? s : `${s}.`))
+      .join(' '));
     state.flagImages = await preloadFlags(state.countries);
     await fontsReady;
     render();
@@ -1527,9 +1627,10 @@ imgInput.addEventListener('change', async () => {
     backgroundImageUrl = url;
     state.image = img;
     state.imageTransform = { zoom: 1, panX: 0, panY: 0 };
-    zoomRange.value = '1';
+    syncImageInputs();
     state.imgHintState = { type: 'loaded', fileName: file.name };
     renderImgHint();
+    announce(imgHint.textContent);
     await fontsReady;
     render();
   } catch (err) {
@@ -1543,16 +1644,47 @@ textColor.addEventListener('input', render);
 titleInput.addEventListener('input', render);
 showBordersCheckbox.addEventListener('change', render);
 
+// Keeps the three sliders in step with state.imageTransform, whichever way it
+// was changed — slider, reset, or dragging the preview. The percentages are
+// there because a raw "-0.37" tells a screen-reader user nothing.
+function syncImageInputs() {
+  const { zoom, panX, panY } = state.imageTransform;
+  zoomRange.value = String(zoom);
+  zoomRange.setAttribute('aria-valuetext', `${Math.round(zoom * 100)} %`);
+  panXRange.value = String(panX);
+  panXRange.setAttribute('aria-valuetext', `${Math.round(panX * 100)} %`);
+  panYRange.value = String(panY);
+  panYRange.setAttribute('aria-valuetext', `${Math.round(panY * 100)} %`);
+}
+
 zoomRange.addEventListener('input', () => {
   state.imageTransform.zoom = parseFloat(zoomRange.value);
+  syncImageInputs();
+  render();
+});
+
+// Keyboard and single-pointer equivalent for dragging the preview (WCAG 2.1.1,
+// 2.5.7) — the drag handler below writes the same two values.
+panXRange.addEventListener('input', () => {
+  state.imageTransform.panX = clamp(parseFloat(panXRange.value), -1, 1);
+  syncImageInputs();
+  render();
+});
+
+panYRange.addEventListener('input', () => {
+  state.imageTransform.panY = clamp(parseFloat(panYRange.value), -1, 1);
+  syncImageInputs();
   render();
 });
 
 resetImageBtn.addEventListener('click', () => {
   state.imageTransform = { zoom: 1, panX: 0, panY: 0 };
-  zoomRange.value = '1';
+  syncImageInputs();
   render();
 });
+
+// Sets the initial aria-valuetext on all three sliders.
+syncImageInputs();
 
 let dragState = null;
 
@@ -1580,6 +1712,7 @@ canvas.addEventListener('pointermove', (e) => {
 
   state.imageTransform.panX = clamp(dragState.startPanX + deltaPanX, -1, 1);
   state.imageTransform.panY = clamp(dragState.startPanY + deltaPanY, -1, 1);
+  syncImageInputs();
   render();
 });
 
