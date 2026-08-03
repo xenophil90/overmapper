@@ -37,6 +37,14 @@ poster's short edge, so landscape formats stay in proportion.
 - German/English interface, remembered between visits
 - Runs 100% in the browser — no backend, no accounts, no data ever leaves your device
 
+**Accessibility**
+
+Built to EN 301 549 / WCAG 2.1–2.2 level AA. Every control is fully keyboard
+operable and named, the poster canvas carries a text description of what it
+shows, and framing the background image works with sliders as well as by
+dragging. Status changes are announced, high contrast mode and reduced motion
+are respected.
+
 ## Usage
 
 Open `index.html` directly in a browser, or serve the folder with any static file server, e.g.:
