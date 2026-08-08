@@ -55,6 +55,8 @@ window.TRANSLATIONS = {
     errorTooLarge: 'Die GPX-Datei ist zu groß (max. 50 MB).',
     errorReadGeneric: 'Fehler beim Lesen der GPX-Datei.',
     errorImageLoad: 'Das Bild konnte nicht geladen werden.',
+    bmcLabel: 'Spendier mir einen Kaffee',
+    bmcNewTab: '(öffnet in neuem Tab)',
   },
   en: {
     subtitle: 'GPX track + background image → shareable poster',
@@ -112,6 +114,8 @@ window.TRANSLATIONS = {
     errorTooLarge: 'The GPX file is too large (max. 50 MB).',
     errorReadGeneric: 'Error reading the GPX file.',
     errorImageLoad: 'The image could not be loaded.',
+    bmcLabel: 'Buy me a coffee',
+    bmcNewTab: '(opens in a new tab)',
   },
 };
 
