@@ -1149,7 +1149,11 @@ function applyLanguage(lang) {
   document.documentElement.lang = state.lang;
 
   document.querySelectorAll('[data-i18n]').forEach((el) => {
-    el.textContent = t(el.dataset.i18n);
+    // A key neither table knows leaves the markup's own text in place. Assigning
+    // the miss would write the string "undefined" into the page — and an empty
+    // one would silently collapse whatever the label was holding open.
+    const text = t(el.dataset.i18n);
+    if (typeof text === 'string') el.textContent = text;
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
