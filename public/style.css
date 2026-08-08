@@ -33,7 +33,7 @@
   --accent: #7c6cff;
   --accent-2: #34e0a1;
   --danger: #ff6b6b;
-  /* Buy Me a Coffee's brand yellow — only used on hover/focus of the support link. */
+  /* Buy Me a Coffee's brand yellow — only used on the support widget's cup. */
   --bmc: #ffdd00;
 }
 
@@ -513,29 +513,43 @@ button {
   .dropzone.dragover { border-color: Highlight; }
 }
 
-/* Support button, floating in the bottom-right corner the way Buy Me a Coffee's
-   own widget does. Below .lang-menu's z-index so the dropdown always wins. */
+/* Support widget, floating in the bottom-right corner the way Buy Me a Coffee's
+   own does — but wearing this page's clothes rather than the brand's full yellow
+   slab: the same glass surface, hairline border and muted label as every panel,
+   with the yellow kept to the cup. Below .lang-menu's z-index so the dropdown
+   always wins. */
 .bmc-fab {
   position: fixed;
   right: 20px;
   /* Keep clear of the home indicator on iOS, where the bottom inset is not 0. */
   bottom: max(20px, env(safe-area-inset-bottom));
   z-index: 20;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: var(--bmc);
-  color: #0b0c10;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  /* Opaque enough that page content scrolling underneath stays out of the label. */
+  background: rgba(20,21,27,0.82);
+  border: 1px solid var(--panel-border);
+  backdrop-filter: blur(20px);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease,
+              transform 0.15s ease, box-shadow 0.15s ease;
 }
-.bmc-fab svg { width: 24px; height: 24px; }
+.bmc-fab .bmc-cup { flex: none; width: 18px; height: 18px; color: var(--bmc); }
 .bmc-fab:hover {
+  color: var(--text);
+  border-color: rgba(255,221,0,0.45);
+  background: rgba(30,27,12,0.88);
   transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(0,0,0,0.55);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.5);
 }
 .bmc-fab:active { transform: translateY(0); }
 .bmc-fab:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
@@ -554,10 +568,11 @@ button {
   .bmc-fab {
     right: 14px;
     bottom: 14px;
-    width: 44px;
-    height: 44px;
+    gap: 7px;
+    padding: 8px 12px;
+    font-size: 0.74rem;
   }
-  .bmc-fab svg { width: 21px; height: 21px; }
+  .bmc-fab .bmc-cup { width: 16px; height: 16px; }
 }
 
 @media (forced-colors: active) {

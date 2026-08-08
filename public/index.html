@@ -6,7 +6,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none';">
 <title>Overmapper</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-<link rel="stylesheet" href="style.css">
+<!-- The host sends no Cache-Control, so browsers cache heuristically and can pair
+     a fresh index.html with a stylesheet from the previous deploy. Bump on every
+     visual change so nobody gets served half of one design and half of another. -->
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
   <div class="app">
@@ -224,20 +227,23 @@
     <p class="sr-only" id="statusAnnouncer" aria-live="polite"></p>
   </div>
 
-  <!-- Floating support button, in the spirit of Buy Me a Coffee's own widget but
-       drawn here: theirs is a third-party script, and the CSP above allows none.
+  <!-- Floating support widget, in the spirit of Buy Me a Coffee's own but drawn
+       here: theirs is a third-party script, and the CSP above allows none.
        Sits outside .app because it belongs to the viewport, not the layout.
-       Icon only, so the name comes from the hidden label plus a hover tooltip. -->
-  <a class="bmc-fab" href="https://buymeacoffee.com/xeno90" target="_blank" rel="noopener noreferrer" data-i18n-title="bmcLabel" title="Spendier mir einen Kaffee">
-    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-      <!-- Nudged so the cup's ink, not its bounding box, sits centred in the circle. -->
+       The cup carries width/height attributes on top of its CSS size: an inline
+       SVG with only a viewBox stretches to its container's width, so a stylesheet
+       that arrives late — or a stale cached one — would otherwise draw the cup
+       page-wide at the very bottom instead of at 18px inside the pill. -->
+  <a class="bmc-fab" href="https://buymeacoffee.com/xeno90" target="_blank" rel="noopener noreferrer">
+    <svg class="bmc-cup" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <!-- Nudged so the cup's ink, not its bounding box, sits centred in the box. -->
       <g transform="translate(-0.2 0.75)">
         <path d="M2.6 5.6h7.9v3.9a3 3 0 0 1-3 3H5.6a3 3 0 0 1-3-3V5.6Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
         <path d="M10.5 6.6h1.6a1.7 1.7 0 0 1 0 3.4h-1.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M5.2 2v1.7M8.2 2v1.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
       </g>
     </svg>
-    <span class="sr-only" data-i18n="bmcLabel">Spendier mir einen Kaffee</span>
+    <span data-i18n="bmcLabel">Spendier mir einen Kaffee</span>
     <!-- The link leaves the page; say so for anyone who cannot see the tab open. -->
     <span class="sr-only" data-i18n="bmcNewTab">(öffnet in neuem Tab)</span>
   </a>
