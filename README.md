@@ -1,4 +1,6 @@
-# Overmapper
+<h1 align="center">
+  <img src="assets/readme-banner.svg" alt="Overmapper" width="880">
+</h1>
 
 Turn a GPX track and a background photo into a clean, shareable poster: an abstract route line, distance, visited-country flags, and more — all rendered entirely client-side in the browser.
 

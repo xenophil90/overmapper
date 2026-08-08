@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240" role="img" aria-label="Overmapper — GPX track + background image → shareable poster">
+  <title>Overmapper</title>
+  <defs>
+    <!-- The two glows the app paints behind its own UI, see body{} in style.css. -->
+    <radialGradient id="glowViolet">
+      <stop offset="0" stop-color="#7c6cff" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#7c6cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowGreen">
+      <stop offset="0" stop-color="#34e0a1" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#34e0a1" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="card">
+      <rect width="900" height="240" rx="26"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <rect width="900" height="240" fill="#08090c"/>
+    <ellipse cx="150" cy="-20" rx="560" ry="320" fill="url(#glowViolet)"/>
+    <ellipse cx="880" cy="40" rx="440" ry="300" fill="url(#glowGreen)"/>
+  </g>
+  <rect x="0.75" y="0.75" width="898.5" height="238.5" rx="25.25" fill="none" stroke="#22252d" stroke-width="1.5"/>
+
+  <!-- Mark, wordmark and tagline are stacked and each centred on x=450, so the
+       banner stays centred whatever font the viewer falls back to — Inter is not
+       available on GitHub. -->
+  <g transform="translate(421.4 43) scale(0.9) translate(-18.5 -11)">
+    <path d="M25 74 C 33 55, 29 40, 47 36 C 61 33, 55 19, 77 16" stroke="#f4f5f7" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="25" cy="74" r="6.5" fill="#f4f5f7"/>
+    <circle cx="77" cy="16" r="5" fill="#c7cad1"/>
+  </g>
+
+  <text x="450" y="157" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="46" font-weight="800" letter-spacing="-0.9" fill="#f5f6f8">Overmapper</text>
+  <text x="450" y="193" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="500" fill="#8b8fa3">GPX track + background image → shareable poster</text>
+</svg>
