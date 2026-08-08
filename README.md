@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="assets/readme-banner.svg" alt="Overmapper" width="880">
+  <img src="docs/readme-banner.svg" alt="Overmapper" width="880">
 </h1>
 
 Turn a GPX track and a background photo into a clean, shareable poster: an abstract route line, distance, visited-country flags, and more — all rendered entirely client-side in the browser.
@@ -49,13 +49,20 @@ are respected.
 
 ## Usage
 
-Open `index.html` directly in a browser, or serve the folder with any static file server, e.g.:
+Everything the site needs lives in `public/`. Open `public/index.html` directly in a
+browser, or serve that folder with any static file server, e.g.:
 
 ```bash
-python3 -m http.server 8000
+python3 -m http.server 8000 --directory public
 ```
 
 Then visit `http://localhost:8000`.
+
+## Deploying
+
+Point the web server's document root at `public/`, not at the repository root.
+Nothing outside `public/` is needed to serve the site, which keeps `.git`, the
+markdown files and any local tooling config off the web.
 
 ## About this project
 
@@ -63,6 +70,6 @@ This app was built almost entirely through conversation with [Claude](https://cl
 
 ## Third-party assets
 
-- [flag-icons](https://github.com/lipis/flag-icons) (MIT license, see `data/flags/LICENSE`) — country flag graphics
+- [flag-icons](https://github.com/lipis/flag-icons) (MIT license, see `public/data/flags/LICENSE`) — country flag graphics
 - [Inter](https://github.com/rsms/inter) font (SIL Open Font License)
 - A simplified [Natural Earth](https://www.naturalearthdata.com/) countries dataset (public domain) — used for country-border detection
